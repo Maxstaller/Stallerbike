@@ -1,0 +1,27 @@
+{% extends 'base.html' %}
+{% block content %}
+<div class="d-flex justify-content-between align-items-center mb-3">
+  <h2>Benutzer</h2>
+  <a class="btn btn-success" href="{{ url_for('add_user') }}">Neuen Benutzer</a>
+</div>
+<table class="table">
+  <thead><tr><th>#</th><th>Benutzername</th><th>Admin</th><th>Erstellt</th><th></th></tr></thead>
+  <tbody>
+    {% for u in users %}
+      <tr>
+        <td>{{ u.id }}</td>
+        <td>{{ u.username }}</td>
+        <td>{{ 'Ja' if u.is_admin else 'Nein' }}</td>
+        <td>{{ u.created_at.strftime('%Y-%m-%d') }}</td>
+        <td>
+          <form method="post" action="{{ url_for('delete_user', user_id=u.id) }}" style="display:inline" onsubmit="return confirm('Löschen?');">
+            <button class="btn btn-sm btn-outline-danger">Löschen</button>
+          </form>
+        </td>
+      </tr>
+    {% else %}
+      <tr><td colspan="5">Keine Benutzer</td></tr>
+    {% endfor %}
+  </tbody>
+</table>
+{% endblock %}

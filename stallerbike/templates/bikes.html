@@ -1,0 +1,43 @@
+{% extends 'base.html' %}
+{% block content %}
+<div class="d-flex justify-content-between align-items-center mb-3">
+  <h2>Bikes</h2>
+  <a class="btn btn-success" href="{{ url_for('add_bike') }}">Neues Bike</a>
+</div>
+<form class="row g-2 mb-3">
+  <div class="col-md-4"><input name="q" value="{{ q }}" class="form-control" placeholder="Suche..."></div>
+  <div class="col-md-3">
+    <select name="category" class="form-select">
+      <option value="">Alle Kategorien</option>
+      {% for c in categories %}
+        <option value="{{ c }}" {% if c==cat %}selected{% endif %}>{{ c }}</option>
+      {% endfor %}
+    </select>
+  </div>
+  <div class="col-md-2"><button class="btn btn-primary">Filtern</button></div>
+</form>
+<table class="table table-striped">
+  <thead><tr><th>#</th><th>Name</th><th>Kategorie</th><th>Status</th><th>Standort</th><th></th></tr></thead>
+  <tbody>
+    {% for b in bikes %}
+      <tr>
+        <td>{{ b.id }}</td>
+        <td>{{ b.name }}</td>
+        <td>{{ b.category }}</td>
+        <td>{{ b.status }}</td>
+        <td>{{ b.location or '-' }}</td>
+        <td>
+          <a href="{{ url_for('edit_bike', bike_id=b.id) }}" class="btn btn-sm btn-outline-primary">Bearbeiten</a>
+          {% if current_user.is_admin %}
+          <form method="post" action="{{ url_for('delete_bike', bike_id=b.id) }}" style="display:inline" onsubmit="return confirm('Löschen?');">
+            <button class="btn btn-sm btn-outline-danger">Löschen</button>
+          </form>
+          {% endif %}
+        </td>
+      </tr>
+    {% else %}
+      <tr><td colspan="6">Keine Fahrräder</td></tr>
+    {% endfor %}
+  </tbody>
+</table>
+{% endblock %}

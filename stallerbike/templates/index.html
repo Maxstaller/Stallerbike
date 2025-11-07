@@ -1,0 +1,28 @@
+{% extends 'base.html' %}
+{% block content %}
+<div class="row">
+  <div class="col-md-8">
+    <h1>Dashboard</h1>
+    <p>Gesamt: <strong>{{ total }}</strong></p>
+    <h5>Kategorien</h5>
+    <ul>
+      {% for cat, cnt in by_cat %}
+        <li>{{ cat }}: {{ cnt }}</li>
+      {% else %}
+        <li>Keine Fahrräder</li>
+      {% endfor %}
+    </ul>
+  </div>
+  <div class="col-md-4">
+    <h5>Neueste Bikes</h5>
+    <ul>
+      {% for b in recent %}
+        <li>{{ b.name }} <small class="text-muted">({{ b.category }})</small></li>
+      {% else %}
+        <li>Keine</li>
+      {% endfor %}
+    </ul>
+    <a href="{{ url_for('bikes') }}" class="btn btn-primary btn-sm">Zu Bikes</a>
+  </div>
+</div>
+{% endblock %}
