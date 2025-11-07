@@ -1,0 +1,36 @@
+{% extends 'base.html' %}
+{% block content %}
+<h2>{% if bike %}Bearbeite Bike{% else %}Neues Bike{% endif %}</h2>
+<form method="post">
+  <div class="mb-3">
+    <label class="form-label">Name / Modell</label>
+    <input name="name" value="{{ bike.name if bike else '' }}" class="form-control" required>
+  </div>
+  <div class="mb-3">
+    <label class="form-label">Kategorie</label>
+    <select name="category" class="form-select">
+      {% for c in categories %}
+        <option value="{{ c }}" {% if bike and bike.category==c %}selected{% endif %}>{{ c }}</option>
+      {% endfor %}
+    </select>
+  </div>
+  <div class="mb-3">
+    <label class="form-label">Zustand</label>
+    <select name="status" class="form-select">
+      {% for s in statuses %}
+        <option value="{{ s }}" {% if bike and bike.status==s %}selected{% endif %}>{{ s }}</option>
+      {% endfor %}
+    </select>
+  </div>
+  <div class="mb-3">
+    <label class="form-label">Standort</label>
+    <input name="location" value="{{ bike.location if bike else '' }}" class="form-control">
+  </div>
+  <div class="mb-3">
+    <label class="form-label">Notizen</label>
+    <textarea name="notes" class="form-control">{{ bike.notes if bike else '' }}</textarea>
+  </div>
+  <button class="btn btn-primary">Speichern</button>
+  <a class="btn btn-secondary" href="{{ url_for('bikes') }}">Abbrechen</a>
+</form>
+{% endblock %}
