@@ -223,40 +223,51 @@ def create_user(username, password, admin):
     click.echo(f'Benutzer {username} erstellt. Admin={admin}')
 
 # ➕ Force-Admin-Route (außerhalb der Funktion!)
+# ➕ Force-Admin-Route
 @app.route("/force-admin")
 def force_admin():
-    from app import db, User
-    u = User.query.filter_by(username='admin').first()
-    if not u:
-        u = User(username='admin', is_admin=True)
-        u.set_password('adminpass')
-        db.session.add(u)
-        db.session.commit()
-        return "✅ Admin erstellt!"
-    else:
-        u.set_password('adminpass')
-        db.session.commit()
-        return "🔄 Passwort für Admin wurde zurückgesetzt!"
+    try:
+        u = User.query.filter_by(username='admin').first()
+        if not u:
+            u = User(username='admin', is_admin=True)
+            u.set_password('adminpass')
+            db.session.add(u)
+            db.session.commit()
+            return "✅ Admin erstellt!"
+        else:
+            u.set_password('adminpass')
+            db.session.commit()
+            return "🔄 Passwort für Admin wurde zurückgesetzt!"
+    except Exception as e:
+        return f"❌ Fehler: {e}"
 
-# CLI-Befehle
+
+# ➕ CLI-Befehle
 app.cli.add_command(init_db)
 app.cli.add_command(create_user)
 
-# Admin-Erstellung beim Start (einmalig, optional)
-from app import db, User
-with app.app_context():
-    if not User.query.filter_by(username='admin').first():
-        u = User(username='admin', is_admin=True)
-        u.set_password('adminpass')
-        db.session.add(u)
-        db.session.commit()
-        print("✅ Admin-Benutzer wurde erstellt!")
-    else:
-        print("⚠️ Benutzer 'admin' existiert bereits.")
 
-# App-Start (nur lokal relevant)
-if __name__ == '__main__':
-    app.run(debug=True)
+# ➕ Admin-Erstellung beim Start
+with app.app_context():
+    try:
+        if not User.query.filter_by(username='admin').first():
+            u = User(username='admin', is_admin=True)
+            u.set_password('adminpass')
+            db.session.add(u)
+            db.session.commit()
+            print("✅ Admin-Benutzer wurde erstellt!")
+        else:
+            print("⚠️ Benutzer 'admin' existiert bereits.")
+    except Exception as e:
+        print("❌ Fehler bei Admin-Setup:", e)
+
+
+# ➕ Debug-Ausgabe aller registrierten Routen (erscheint im Render-Log)
 print("REGISTERED ROUTES:")
 for rule in app.url_map.iter_rules():
-    print(rule)
+    print(" →", rule)
+
+
+# Nur lokal relevant
+if __name__ == '__main__':
+    app.run(debug=True)
