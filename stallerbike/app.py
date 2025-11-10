@@ -263,9 +263,12 @@ with app.app_context():
 
 
 # ➕ Debug-Ausgabe aller registrierten Routen (erscheint im Render-Log)
-print("REGISTERED ROUTES:")
-for rule in app.url_map.iter_rules():
-    print(" →", rule)
+@app.before_first_request
+def show_registered_routes():
+    print("========== REGISTERED ROUTES ==========")
+    for rule in app.url_map.iter_rules():
+        print(" →", rule)
+    print("=======================================")
 
 
 # Nur lokal relevant
