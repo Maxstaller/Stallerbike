@@ -201,76 +201,81 @@ def api_bikes():
     return jsonify(data)
 
 # CLI commands
+# ===========================================
+# ⚙️ CLI-Befehle
+# ===========================================
 @click.command('init-db')
 @with_appcontext
 def init_db():
     db.create_all()
     click.echo('DB initialisiert.')
 
+
 @click.command('create-user')
-@click.option('--username', prompt=True)
-@click.option('--password', prompt=True, hide_input=True, confirmation_prompt=True)
-@click.option('--admin', is_flag=True, default=False, help='Set user as admin')
+@click.option('--username')
+@click.option('--password')
+@click.option('--admin', is_flag=True, default=False)
 @with_appcontext
 def create_user(username, password, admin):
+    """Erstellt einen Benutzer (Render-freundlich, ohne Interaktivität)."""
+    if not username or not password:
+        click.echo('❌ Bitte Username und Password übergeben!')
+        return
     if User.query.filter_by(username=username).first():
-        click.echo('Benutzer existiert bereits.')
+        click.echo('⚠️ Benutzer existiert bereits.')
         return
     u = User(username=username, is_admin=admin)
     u.set_password(password)
     db.session.add(u)
     db.session.commit()
-    click.echo(f'Benutzer {username} erstellt. Admin={admin}')
+    click.echo(f'✅ Benutzer {username} erstellt. Admin={admin}')
 
-# ➕ Force-Admin-Route (außerhalb der Funktion!)
-# ➕ Force-Admin-Route
+
+# ===========================================
+# 🧩 Force-Admin-Route
+# ===========================================
 @app.route("/force-admin")
 def force_admin():
-    try:
-        u = User.query.filter_by(username='admin').first()
-        if not u:
-            u = User(username='admin', is_admin=True)
-            u.set_password('adminpass')
-            db.session.add(u)
-            db.session.commit()
-            return "✅ Admin erstellt!"
-        else:
-            u.set_password('adminpass')
-            db.session.commit()
-            return "🔄 Passwort für Admin wurde zurückgesetzt!"
-    except Exception as e:
-        return f"❌ Fehler: {e}"
+    u = User.query.filter_by(username='admin').first()
+    if not u:
+        u = User(username='admin', is_admin=True)
+        u.set_password('adminpass')
+        db.session.add(u)
+        db.session.commit()
+        return "✅ Admin erstellt!"
+    else:
+        u.set_password('adminpass')
+        db.session.commit()
+        return "🔄 Passwort für Admin wurde zurückgesetzt!"
 
 
-# ➕ CLI-Befehle
-app.cli.add_command(init_db)
-app.cli.add_command(create_user)
-
-
-# ➕ Admin-Erstellung beim Start
+# ===========================================
+# 🧰 Auto-Setup beim Render-Start
+# ===========================================
 with app.app_context():
-    try:
-        if not User.query.filter_by(username='admin').first():
-            u = User(username='admin', is_admin=True)
-            u.set_password('adminpass')
-            db.session.add(u)
-            db.session.commit()
-            print("✅ Admin-Benutzer wurde erstellt!")
-        else:
-            print("⚠️ Benutzer 'admin' existiert bereits.")
-    except Exception as e:
-        print("❌ Fehler bei Admin-Setup:", e)
+    db.create_all()
+    admin_user = User.query.filter_by(username='admin').first()
+    if not admin_user:
+        u = User(username='admin', is_admin=True)
+        u.set_password('adminpass')
+        db.session.add(u)
+        db.session.commit()
+        print("✅ Admin-Benutzer wurde automatisch erstellt (admin / adminpass)")
+    else:
+        print("⚠️ Benutzer 'admin' existiert bereits.")
 
 
-# ➕ Debug-Ausgabe aller registrierten Routen (erscheint im Render-Log)
-@app.before_first_request
-def show_registered_routes():
-    print("========== REGISTERED ROUTES ==========")
-    for rule in app.url_map.iter_rules():
-        print(" →", rule)
-    print("=======================================")
+# ===========================================
+# 🪶 Zeigt registrierte Routen beim Start
+# ===========================================
+print("========== REGISTERED ROUTES ==========")
+for rule in app.url_map.iter_rules():
+    print(" →", rule)
+print("=======================================")
 
 
-# Nur lokal relevant
+# ===========================================
+# 🚀 Lokaler Start
+# ===========================================
 if __name__ == '__main__':
     app.run(debug=True)
