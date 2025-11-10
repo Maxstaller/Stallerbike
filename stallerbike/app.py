@@ -225,3 +225,14 @@ app.cli.add_command(create_user)
 
 if __name__ == '__main__':
     app.run(debug=True)
+from app import db, User
+
+with app.app_context():
+    if not User.query.filter_by(username='admin').first():
+        u = User(username='admin', is_admin=True)
+        u.set_password('adminpass')
+        db.session.add(u)
+        db.session.commit()
+        print("✅ Admin-Benutzer wurde erstellt!")
+    else:
+        print("⚠️ Benutzer 'admin' existiert bereits.")
