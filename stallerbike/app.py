@@ -175,6 +175,8 @@ def login():
     if request.method == 'POST':
         username = request.form['username'].strip()
         password = request.form['password']
+        print("DEBUG LOGIN:", username)
+print("DB Users:", [u.username for u in User.query.all()])
         user = User.query.filter_by(username=username).first()
         if user and user.check_password(password):
             login_user(user)
