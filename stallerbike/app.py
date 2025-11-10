@@ -258,15 +258,22 @@ with app.app_context():
     print("✅ Setup erfolgreich, Admin vorhanden!")
 
 # ===========================================
-# 🪶 Registered Routes
+# 🪶 Registered Routes (mit sofortiger Log-Ausgabe)
 # ===========================================
-print("========== REGISTERED ROUTES ==========")
-for rule in app.url_map.iter_rules():
-    print(" →", rule)
-print("=======================================")
+import sys
+
+def show_routes():
+    print("========== REGISTERED ROUTES ==========")
+    for rule in app.url_map.iter_rules():
+        print(" →", rule)
+    print("=======================================")
+    sys.stdout.flush()  # wichtig: zwingt Render, die Ausgabe sofort zu zeigen
+
+show_routes()
 
 # ===========================================
 # 🚀 Start
 # ===========================================
 if __name__ == '__main__':
     app.run(debug=True)
+
