@@ -176,7 +176,7 @@ def login():
         username = request.form['username'].strip()
         password = request.form['password']
         print("DEBUG LOGIN:", username)
-print("DB Users:", [u.username for u in User.query.all()])
+        print("DB Users:", [u.username for u in User.query.all()])
         user = User.query.filter_by(username=username).first()
         if user and user.check_password(password):
             login_user(user)
@@ -222,22 +222,7 @@ def create_user(username, password, admin):
     db.session.commit()
     click.echo(f'Benutzer {username} erstellt. Admin={admin}')
 
-app.cli.add_command(init_db)
-app.cli.add_command(create_user)
-
-if __name__ == '__main__':
-    app.run(debug=True)
-from app import db, User
-
-with app.app_context():
-    if not User.query.filter_by(username='admin').first():
-        u = User(username='admin', is_admin=True)
-        u.set_password('adminpass')
-        db.session.add(u)
-        db.session.commit()
-        print("✅ Admin-Benutzer wurde erstellt!")
-    else:
-        print("⚠️ Benutzer 'admin' existiert bereits.")
+# ➕ Force-Admin-Route (außerhalb der Funktion!)
 @app.route("/force-admin")
 def force_admin():
     from app import db, User
@@ -252,3 +237,23 @@ def force_admin():
         u.set_password('adminpass')
         db.session.commit()
         return "🔄 Passwort für Admin wurde zurückgesetzt!"
+
+# CLI-Befehle
+app.cli.add_command(init_db)
+app.cli.add_command(create_user)
+
+# Admin-Erstellung beim Start (einmalig, optional)
+from app import db, User
+with app.app_context():
+    if not User.query.filter_by(username='admin').first():
+        u = User(username='admin', is_admin=True)
+        u.set_password('adminpass')
+        db.session.add(u)
+        db.session.commit()
+        print("✅ Admin-Benutzer wurde erstellt!")
+    else:
+        print("⚠️ Benutzer 'admin' existiert bereits.")
+
+# App-Start (nur lokal relevant)
+if __name__ == '__main__':
+    app.run(debug=True)
