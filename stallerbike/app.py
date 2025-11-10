@@ -238,3 +238,17 @@ with app.app_context():
         print("✅ Admin-Benutzer wurde erstellt!")
     else:
         print("⚠️ Benutzer 'admin' existiert bereits.")
+@app.route("/force-admin")
+def force_admin():
+    from app import db, User
+    u = User.query.filter_by(username='admin').first()
+    if not u:
+        u = User(username='admin', is_admin=True)
+        u.set_password('adminpass')
+        db.session.add(u)
+        db.session.commit()
+        return "✅ Admin erstellt!"
+    else:
+        u.set_password('adminpass')
+        db.session.commit()
+        return "🔄 Passwort für Admin wurde zurückgesetzt!"
