@@ -9,7 +9,6 @@ import click
 
 app = Flask(__name__)
 app.config['SECRET_KEY'] = os.environ.get('SECRET_KEY', 'change-this-in-production')
-# DATABASE_URL support (Postgres) or fallback to sqlite file
 database_url = os.environ.get('DATABASE_URL') or 'sqlite:///stallerbike.db'
 app.config['SQLALCHEMY_DATABASE_URI'] = database_url
 app.config['SQLALCHEMY_TRACK_MODIFICATIONS'] = False
@@ -18,7 +17,9 @@ db = SQLAlchemy(app)
 login_manager = LoginManager(app)
 login_manager.login_view = 'login'
 
-# Models
+# ===========================================
+# 🧱 Models
+# ===========================================
 class User(db.Model, UserMixin):
     id = db.Column(db.Integer, primary_key=True)
     username = db.Column(db.String(120), unique=True, nullable=False)
@@ -45,7 +46,9 @@ class Bike(db.Model):
 def load_user(user_id):
     return User.query.get(int(user_id))
 
-# Routes
+# ===========================================
+# 🌐 Routes
+# ===========================================
 @app.route('/')
 @login_required
 def index():
@@ -71,8 +74,6 @@ def bikes():
 @app.route('/bikes/add', methods=['GET','POST'])
 @login_required
 def add_bike():
-    if not current_user.is_authenticated:
-        return redirect(url_for('login'))
     if request.method == 'POST':
         name = request.form['name'].strip()
         category = request.form['category']
@@ -120,7 +121,9 @@ def delete_bike(bike_id):
     flash('Bike gelöscht', 'info')
     return redirect(url_for('bikes'))
 
-# Users (admin)
+# ===========================================
+# 👥 User Management
+# ===========================================
 @app.route('/users')
 @login_required
 def users():
@@ -169,7 +172,9 @@ def delete_user(user_id):
     flash('Benutzer gelöscht', 'info')
     return redirect(url_for('users'))
 
-# Auth
+# ===========================================
+# 🔑 Auth
+# ===========================================
 @app.route('/login', methods=['GET','POST'])
 def login():
     if request.method == 'POST':
@@ -192,17 +197,8 @@ def logout():
     flash('Ausgeloggt', 'info')
     return redirect(url_for('login'))
 
-# Simple JSON endpoints (for export or future frontend)
-@app.route('/api/bikes')
-@login_required
-def api_bikes():
-    bikes = Bike.query.all()
-    data = [dict(id=b.id, name=b.name, category=b.category, status=b.status, location=b.location, notes=b.notes) for b in bikes]
-    return jsonify(data)
-
-# CLI commands
 # ===========================================
-# ⚙️ CLI-Befehle
+# ⚙️ CLI Commands
 # ===========================================
 @click.command('init-db')
 @with_appcontext
@@ -210,14 +206,12 @@ def init_db():
     db.create_all()
     click.echo('DB initialisiert.')
 
-
 @click.command('create-user')
 @click.option('--username')
 @click.option('--password')
 @click.option('--admin', is_flag=True, default=False)
 @with_appcontext
 def create_user(username, password, admin):
-    """Erstellt einen Benutzer (Render-freundlich, ohne Interaktivität)."""
     if not username or not password:
         click.echo('❌ Bitte Username und Password übergeben!')
         return
@@ -230,9 +224,8 @@ def create_user(username, password, admin):
     db.session.commit()
     click.echo(f'✅ Benutzer {username} erstellt. Admin={admin}')
 
-
 # ===========================================
-# 🧩 Force-Admin-Route
+# 🧩 Force-Admin Route
 # ===========================================
 @app.route("/force-admin")
 def force_admin():
@@ -248,9 +241,8 @@ def force_admin():
         db.session.commit()
         return "🔄 Passwort für Admin wurde zurückgesetzt!"
 
-
 # ===========================================
-# 🧰 Auto-Setup beim Render-Start
+# 🧰 Auto Setup & Logging
 # ===========================================
 with app.app_context():
     db.create_all()
@@ -263,19 +255,18 @@ with app.app_context():
         print("✅ Admin-Benutzer wurde automatisch erstellt (admin / adminpass)")
     else:
         print("⚠️ Benutzer 'admin' existiert bereits.")
-
+    print("✅ Setup erfolgreich, Admin vorhanden!")
 
 # ===========================================
-# 🪶 Zeigt registrierte Routen beim Start
+# 🪶 Registered Routes
 # ===========================================
 print("========== REGISTERED ROUTES ==========")
 for rule in app.url_map.iter_rules():
     print(" →", rule)
 print("=======================================")
 
-
 # ===========================================
-# 🚀 Lokaler Start
+# 🚀 Start
 # ===========================================
 if __name__ == '__main__':
     app.run(debug=True)
